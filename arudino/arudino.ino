@@ -2,8 +2,8 @@
 LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 int SA = 5; // Entrada digital del sensor A
 long i = 0;
-int M1= LOW, M2 = HIGH;
 int valor;
+int M1= LOW, M2 = HIGH;
 void setup()
 {
   attachInterrupt(0, giro, RISING);
