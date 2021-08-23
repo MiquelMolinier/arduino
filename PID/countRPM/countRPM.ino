@@ -1,20 +1,15 @@
 #include <util/atomic.h>
-
-
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(13,12,11,10,9,8);
 #define ENA 5
-#define IN1 13
-#define IN2 12
+#define IN1 7
+#define IN2 6
 #define SA 2
 #define SB 3
 
 float resolution = 300.0;
-float prevT;
+long prevT = 0;
 volatile int pulses = 0;
-volatile int theta = 0;
-int pos = 0;
-float eprev = 0.0;
-float eintegral = 0.0;
-float target = 60.0;
 void setMotor(int dir, int pwmVal) {
   analogWrite(ENA, pwmVal);
   if(dir == 1){ // CW
@@ -32,7 +27,6 @@ void setMotor(int dir, int pwmVal) {
 }
 void readEncoder() {
   pulses++;
-  
 }
 void setup() {
   // put your setup code here, to run once:
@@ -47,35 +41,24 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  float rpm;
+  lcd.setCursor(0,0);
+  lcd.print("RPM:");
   float pwm = map(analogRead(0),0,1023,0,255);
+  setMotor(1, pwm);
+  float rpm;
   float currT = micros();
-  float deltaT = (currT-prevT);
+  float deltaT = currT-prevT;
   if(deltaT>=2.0e5){
-    detachInterrupt(0);
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
       rpm = (float)pulses/deltaT/resolution*60*1.0e6;
       pulses = 0;
     }
     prevT = micros();
     attachInterrupt(0, readEncoder, RISING);
-    float kp = 5.25;
-    float kd = 2.125;
-    float ki = 1.025;
-    float e = target - rpm;
-    float dedt = (e-eprev)/(deltaT/1.0e6);
-    eintegral = eintegral + e*(deltaT/1.0e6);
-    float u = kp*e + kd*dedt + ki*eintegral;
-    float pwm = fabs(u);
-    if(pwm >255){
-      pwm = 255;
-    }
-    setMotor(1, pwm);
-    eprev = e;
-    Serial.print(rpm);
-    Serial.print(" ");
-    Serial.print(target);
-    Serial.println();
+    lcd.print(rpm);
+    lcd.print("    ");
+    lcd.setCursor(0,1);
   }
-  
+  Serial.print(rpm, 3);
+  Serial.println();
 }
