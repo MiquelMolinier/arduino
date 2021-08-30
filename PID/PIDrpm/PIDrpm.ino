@@ -21,8 +21,8 @@ float eprev = 0.0;
 float eintegral = 0.0;
 float target;
 float kp,kd,ki;
-float aggkp = 10.2, aggkd = 0.04714, aggki = 0.951;
-float conskp = 15.2, conskd = 0.4714, conski = 0.651;
+float aggkp = 10.8, aggkd = 0.5714, aggki = 0.831;
+float conskp = 10.8, conskd = 0.7714, conski = 0.971;
 void setTunings(float p, float i ,float d){
   kp = p;
   ki = i;
@@ -55,7 +55,7 @@ void readEncoder() {
 }
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(1000000);
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(SA, INPUT);
@@ -74,14 +74,12 @@ void loop() {
   float deltaT = (currT-prevT);
   int dir;
   if(deltaT>=2.0e5){
-    detachInterrupt(0);
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
       rpm = (float)pulses/deltaT/resolution*60*1.0e6;
       pulses = 0;
       dir = theta;
     }
     prevT = micros();
-    attachInterrupt(0, readEncoder, RISING);
     float e = target - rpm*dir;
     float gap = fabs(e);
     if (gap<10)
